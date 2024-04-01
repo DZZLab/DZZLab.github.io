@@ -13,7 +13,6 @@ position: fixed;
 top: 0;
 font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 font-weight: bold;
-font-size: 1.3vw;
 display: table;
 width: 100%;
 table-layout: fixed;
@@ -22,6 +21,7 @@ border-bottom: 1px solid #fdb347;
 }
 
 .nav a{
+font-size: 2.5vw;
 display: table-cell;
 text-align: center;
 color: #f5f6f7;
