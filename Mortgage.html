@@ -1,0 +1,242 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <!-- defining all the JavaScript functions used in this project -->
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    <script type="text/javascript">
+
+        class House{
+            constructor(){
+                this.price = 0;
+                this.downPayment = 0;
+                this.annualInterestRate = 0;
+                this.loanPeriod = 0;
+                this.initial_principal = this.computeInitialPrincipal();
+                this.outstanding_principal = this.initial_principal;
+
+                this.monthly_interest_rate = this.computeMonthlyInterestRate();
+                this.num_payments = this.computeNumPayments;
+                this.monthly_mortgage = this.computeMonthlyMortgagePayments();
+            }
+
+            getLoanInformation(){
+                return [self.price, self.downPayment, self.annualInterestRate, self.loanPeriod]
+            }
+
+            computeMonthlyMortgagePayments(){
+                //this.principal, this.monthly_interest, this.num_payments;
+                this.computeNumPayments();
+                this.computeInitialPrincipal();
+                this.computeMonthlyInterestRate();
+
+                let r1 = (1+this.monthly_interest_rate)**this.num_payments;
+                let mortgage = this.initial_principal*this.monthly_interest_rate*r1/(r1-1);
+                this.monthly_mortgage = mortgage;
+
+                return this.monthly_mortgage; //Pay this amount every month
+            }
+
+            computeNumPayments(){
+                this.num_payments = this.loanPeriod*12
+                return this.num_payments;
+            }
+
+            computeMonthlyInterestRate(){
+                this.monthly_interest_rate = this.annualInterestRate/12;
+                return this.monthly_interest_rate;
+            }
+
+            computeMonthlyInterestPayment(){
+                this.computeMonthlyInterestRate();
+                this.monthly_interest = this.outstanding_principal*this.annualInterestRate/12;
+                return this.monthly_interest;
+            }
+
+            computeMonthlyPrincipalPayment(){
+                this.monthly_principal = this.monthly_mortgage - this.monthly_interest;
+                return this.monthly_principal;
+            }
+
+            computeInitialPrincipal(){
+                this.initial_principal = this.price-this.downPayment;
+                this.outstanding_principal = this.initial_principal;
+                return this.initial_principal;
+            }
+
+            
+
+            getLoanPaymentValues(){
+                //Functions that only need to be ran once (constant values)
+                this.computeNumPayments();//Gets # payments
+                this.computeInitialPrincipal();//Computes initial principal
+                this.computeMonthlyMortgagePayments();//Computes Mortgage payments (constant)
+                this.computeMonthlyInterestRate();//Monthly rate
+
+                console.log("Number of Payments: " + this.num_payments);
+                console.log(this.num_payments);
+
+                let payment_num = [];
+                let to_interest = [];
+                let to_principal = [];
+                let outstanding_principal = [];
+                
+                for (let i = 0; i < this.num_payments+1; i++){   
+                    //Functions that need to be ran for every payment
+                    this.computeMonthlyInterestPayment();//Computes interest payment per month(non-linear), updates class variable
+                    this.computeMonthlyPrincipalPayment();//Calculates monthly principle based on update interest payment
+                    
+                    //update outstanding principal
+                    this.outstanding_principal = this.outstanding_principal - this.monthly_interest;
+                    
+                    //Push to arrays
+                    payment_num.push(i);
+                    to_interest.push(this.monthly_interest);
+                    to_principal.push(this.monthly_principal);
+                    outstanding_principal.push(this.outstanding_principal);
+                }
+                return [payment_num, to_interest, to_principal, outstanding_principal];
+            }
+
+
+
+            plotMortgageCurves(){
+               // let plottingArrays = this.getLoanPaymentValues(this.principal, this.monthlyPayment, this.annualInterestRate, this.loanPeriod);
+                this.plotValues();
+            }
+
+            plotValues(){
+                // Define Data
+                let plottingArrays = this.getLoanPaymentValues();
+                let num_payments = plottingArrays[0]
+                console.log("Number of Payments Length: " + num_payments.length);
+                let to_interest = plottingArrays[1]
+                let to_principal = plottingArrays[2]
+                let outstanding_principal = plottingArrays[3]
+
+                const Plot1 = [{
+                        x: num_payments,
+                        y: to_interest,
+                        mode: "markers",
+                        name: "Interest Monthly Payment"
+                    },
+                    {
+                        x: num_payments,
+                        y: to_principal,
+                        mode: "markers",
+                        name: "Principal Monthly Payment"
+                    }
+                ];
+
+                const Plot2 = [{
+                    x: num_payments,
+                    y: outstanding_principal,
+                    mode: "markers",
+                    name: "Principal Remaining"
+                }];
+
+                const layout1 = {
+                    xaxis: { title: "Payment Number (Months)" },
+                    yaxis: { title: "Payment Amount (Dollars)" },
+                    title: "Monthly Mortgage Payments"
+                };
+
+                const layout2 = {
+                    xaxis: { title: "Payment Number (Months)" },
+                    yaxis: { title: "Principal Remaining (Dollars)" },
+                    title: "Monthly Principal Remaining"
+                };
+
+                Plotly.newPlot("monthlyInterestRateAndPrincipalPayments", Plot1, layout1);
+                Plotly.newPlot("monthlyPrincipalValues", Plot2, layout2);
+
+            }
+
+            displayResults(){
+                
+            }
+            
+        }
+
+        
+        var houseObj = new House();//declared as a global object, to be driven
+
+        function main_driver() {
+            // houseObj.price = 600000;
+            // houseObj.downPayment = 100000;
+            // houseObj.annualInterestRate = 0.05;
+            // houseObj.loanPeriod = 36;
+            houseObj.price = document.getElementById("HousePrice").value;
+            houseObj.downPayment = document.getElementById("DownPayment").value;
+            houseObj.annualInterestRate = document.getElementById("AnnualInterestRate").value*.01;
+            houseObj.loanPeriod = document.getElementById("LoanPeriod").value;
+
+            houseObj.computeMonthlyMortgagePayments();
+            houseObj.plotMortgageCurves();
+
+            
+            var principal_text = document.getElementById("Principal");
+            var mortgage_text = document.getElementById("Mortgage");
+            var income_text = document.getElementById("Income");
+
+            if (houseObj.initial_principal == 0){
+                principal_text.textContent = "Principal: N/A";
+                mortgage_text.textContent = "Monthly Mortgage: N/A"
+                income_text.textContent = "Minimum Monthly Household Income: N/A (30% of Household Income)"
+            }
+            else{
+                principal_text.textContent = "Principal: " + houseObj.initial_principal;
+                mortgage_text.textContent = "Monthly Mortgage: " + houseObj.monthly_mortgage;
+                income_text.textContent = "Minimum Monthly Household Income: " + "What does this even mean";
+            }
+
+
+
+
+            console.log("Monthly Mortgage: " + houseObj.monthly_mortgage);
+            console.log("Price: " + houseObj.price);
+            console.log("Down Payment: " + houseObj.downPayment);
+            console.log("Annual lnterest: " + houseObj.annualInterestRate);
+            console.log("Loan Period: " + houseObj.loanPeriod);
+            console.log("Initial Principal: " + houseObj.initial_principal);
+        }
+
+    </script>
+</head>
+
+
+
+<body>
+
+    <div id="monthlyInterestRateAndPrincipalPayments" style="width:50%; 
+    margin:auto; float: left;"></div>
+    <div id="monthlyPrincipalValues" style="width:50%; margin:auto; float: left"></div>
+
+    <h1>Mortgage Calculator</h1>
+    <form">
+        <label for="HousePrice">House Price (Dollars)</label>
+        <input type="text" id="HousePrice" name="HousePrice"><br><br>
+
+        <label for="DownPayment">Down Payment (Dollars)</label>
+        <input type="text" id="DownPayment" name="DownPayment"><br><br>
+
+        <label for="AnnualInterestRate">Annual Interest Rate (Percent)</label>
+        <input type="text" id="AnnualInterestRate" name="AnnualInterestRate"><br><br>
+        
+        <label for="LoanPeriod">Loan Period (Years)</label>
+        <input type="text" id="LoanPeriod" name="LoanPeriod"><br>
+
+        <button id="RunFunc" name="RunFunc" onclick="return main_driver()">Calculate</button>
+    </form>
+
+    <p id="Principal">Principal: </p>
+    <p id="Mortgage">Monthly Mortgage: N/A</p>
+    <p id="Income">Minimum Monthly Income per Household: N/A</p>
+
+    <!-- running the main_driver method -->
+    <script type="text/javascript">
+        main_driver() 
+    </script>
+</body>
+</html>
