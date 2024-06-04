@@ -174,8 +174,7 @@
 
             houseObj.computeMonthlyMortgagePayments();
             houseObj.plotMortgageCurves();
-
-            
+ 
             var principal_text = document.getElementById("Principal");
             var mortgage_text = document.getElementById("Mortgage");
             var income_text = document.getElementById("Income");
@@ -186,13 +185,10 @@
                 income_text.textContent = "Minimum Monthly Household Income: N/A (30% of Household Income)"
             }
             else{
-                principal_text.textContent = "Principal: " + houseObj.initial_principal;
-                mortgage_text.textContent = "Monthly Mortgage: " + houseObj.monthly_mortgage;
-                income_text.textContent = "Minimum Monthly Household Income: " + "What does this even mean";
+                principal_text.textContent = "Principal: $" + Math.round(houseObj.initial_principal * 100) / 100;
+                mortgage_text.textContent = "Monthly Mortgage: $" + Math.round(houseObj.monthly_mortgage * 100) / 100;
+                income_text.textContent = "Minimum Monthly Household Income: $" + Math.round(houseObj.monthly_mortgage*10/3 * 100) / 100;
             }
-
-
-
 
             console.log("Monthly Mortgage: " + houseObj.monthly_mortgage);
             console.log("Price: " + houseObj.price);
